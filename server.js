@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import sqlite3 from 'sqlite3';
 import parcelRoutes from './parcel/parcelController.js';
+import sequelize from './parcel/parcelModel.js';
 
 const app = express();
 const PORT = 80; // as said in the assignment.
@@ -22,7 +23,13 @@ const db = new sqlite3.Database('./db/parcel.db', (err) => {
 // API routes
 app.use('/api/v1/parcels', parcelRoutes);
 
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Server is running on port number ${PORT}`);
+// Sync Sequelize models and create tables if they don't exist
+sequelize.sync().then(() => {
+    console.log('Database & tables synced!');
+    // Start the server inside the sync callback
+    app.listen(PORT, () => {
+        console.log(`Server is running on port number ${PORT}`);
+    });
+}).catch((err) => {
+    console.error('Failed to sync database:', err);
 });

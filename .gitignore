@@ -1,8 +1,8 @@
 # Node modules
 node_modules/
 
-# SQLite database
-db/*.db
+# # SQLite database
+# db/*.db
 
 # Logs
 *.log
