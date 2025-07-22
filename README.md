@@ -50,3 +50,7 @@ parcel-management-system
 The SQLite database file is stored at `db/parcel.db`.  
 It will be automatically created when you run the server for the first time.  
 The schema is managed via Sequelize in `parcel/parcelModel.js`.
+
+
+#### A little Note
+The frontend is under development and yet not pushed that's the reason I have only ticked backend in the google form.
