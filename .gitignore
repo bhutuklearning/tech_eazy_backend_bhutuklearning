@@ -20,3 +20,6 @@ Thumbs.db
 
 # npm debug files
 npm-debug.log*
+
+# Ignore package-lock.json
+package-lock.json

@@ -40,11 +40,11 @@ parcel-management-system
 
 ## API Endpoints
 
-- **GET /parcels**: List all parcels
-- **GET /parcels/:trackingId**: Get parcel by tracking ID
-- **POST /parcels**: Create a new parcel
-- **PUT /parcels/:trackingId**: Update a parcel
-- **DELETE /parcels/:trackingId**: Delete a parcel
+- **GET /api/v1/parcels**: To list all parcels
+- **GET /api/v1/parcels/:trackingId**: Get the parcel by tracking ID
+- **POST /api/v1/parcels**: Create a new parcel
+- **PUT /api/v1/parcels/:trackingId**: Update a parcel
+- **DELETE /api/v1/parcels/:trackingId**: Delete a parcel
 
 ## Database
 The SQLite database file is stored at `db/parcel.db`.  
