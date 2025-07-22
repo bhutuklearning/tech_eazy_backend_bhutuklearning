@@ -4,7 +4,7 @@ import sqlite3 from 'sqlite3';
 import parcelRoutes from './parcel/parcelController.js';
 
 const app = express();
-const PORT = 5000;
+const PORT = 80; // as said in the assignment.
 
 // Middleware
 app.use(bodyParser.json());
@@ -20,9 +20,9 @@ const db = new sqlite3.Database('./db/parcel.db', (err) => {
 });
 
 // API routes
-app.use('/parcels', parcelRoutes);
+app.use('/api/v1/parcels', parcelRoutes);
 
 // Start the server
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on port number ${PORT}`);
 });
