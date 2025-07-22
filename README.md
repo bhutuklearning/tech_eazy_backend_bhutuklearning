@@ -47,7 +47,6 @@ parcel-management-system
 - **DELETE /parcels/:trackingId**: Delete a parcel
 
 ## Database
-The SQLite database is stored in `db/parcel.db`. The schema is defined in the `parcelModel.js` file, and the database will be initialized when the server starts.
-
-## Testing
-A Postman collection is available in `postman_collection.json` for testing the REST APIs. Import this collection into Postman to easily test the endpoints.
+The SQLite database file is stored at `db/parcel.db`.  
+It will be automatically created when you run the server for the first time.  
+The schema is managed via Sequelize in `parcel/parcelModel.js`.
