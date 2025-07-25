@@ -6,6 +6,7 @@ import {
     updateParcel,
     deleteParcel
 } from './parcelService.js';
+import { ParcelDTO } from './parcelDTO.js';
 
 const router = express.Router();
 
@@ -39,6 +40,43 @@ router.delete('/:trackingNumber', async (req, res) => {
     const parcel = await deleteParcel(req.params.trackingNumber);
     if (!parcel) return res.status(404).json({ error: 'Parcel not found' });
     res.json({ message: 'Parcel deleted' });
+});
+
+
+
+/**
+ * DTO-based endpoint for creating a parcel with validation.
+ * POST /parcels/dto
+ */
+router.post('/dto', async (req, res) => {
+    const requiredFields = [
+        'customerName',
+        'deliveryAddress',
+        'trackingNumber',
+        'contactNumber',
+        'parcelSize',
+        'weight'
+    ];
+    // Basic validation
+    for (const field of requiredFields) {
+        if (!req.body[field]) {
+            return res.status(400).json({ error: `Missing required field: ${field}` });
+        }
+    }
+    try {
+        // Use DTO for transformation (could add more logic here)
+        const dto = new ParcelDTO(req.body);
+        // Pass the DTO and other fields to the service
+        const parcel = await createParcel({
+            ...dto,
+            contactNumber: req.body.contactNumber,
+            parcelSize: req.body.parcelSize,
+            weight: req.body.weight
+        });
+        res.status(201).json(parcel);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
 });
 
 export default router;
