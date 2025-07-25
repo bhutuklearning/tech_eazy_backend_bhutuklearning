@@ -6,20 +6,24 @@ const sequelize = new Sequelize({
 });
 
 export const Parcel = sequelize.define('Parcel', {
-    trackingId: {
+    trackingNumber: {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true
     },
-    sender: {
+    customerName: {
         type: DataTypes.STRING,
         allowNull: false
     },
-    recipient: {
+    deliveryAddress: {
         type: DataTypes.STRING,
         allowNull: false
     },
-    status: {
+    contactNumber: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    parcelSize: {
         type: DataTypes.STRING,
         allowNull: false
     },

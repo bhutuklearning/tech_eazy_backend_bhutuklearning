@@ -1,7 +1,7 @@
 import express from 'express';
 import {
     getAllParcels,
-    getParcelByTrackingId,
+    getParcelByTrackingNumber,
     createParcel,
     updateParcel,
     deleteParcel
@@ -14,8 +14,8 @@ router.get('/', async (req, res) => {
     res.json(parcels);
 });
 
-router.get('/:trackingId', async (req, res) => {
-    const parcel = await getParcelByTrackingId(req.params.trackingId);
+router.get('/:trackingNumber', async (req, res) => {
+    const parcel = await getParcelByTrackingNumber(req.params.trackingNumber);
     if (!parcel) return res.status(404).json({ error: 'Parcel not found' });
     res.json(parcel);
 });
@@ -29,14 +29,14 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.put('/:trackingId', async (req, res) => {
-    const parcel = await updateParcel(req.params.trackingId, req.body);
+router.put('/:trackingNumber', async (req, res) => {
+    const parcel = await updateParcel(req.params.trackingNumber, req.body);
     if (!parcel) return res.status(404).json({ error: 'Parcel not found' });
     res.json(parcel);
 });
 
-router.delete('/:trackingId', async (req, res) => {
-    const parcel = await deleteParcel(req.params.trackingId);
+router.delete('/:trackingNumber', async (req, res) => {
+    const parcel = await deleteParcel(req.params.trackingNumber);
     if (!parcel) return res.status(404).json({ error: 'Parcel not found' });
     res.json({ message: 'Parcel deleted' });
 });
