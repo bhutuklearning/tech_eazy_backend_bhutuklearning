@@ -2,7 +2,7 @@ import { Sequelize, DataTypes } from 'sequelize';
 
 const sequelize = new Sequelize({
     dialect: 'sqlite',
-    storage: './db/parcel.db'
+    storage: './db/parcel_assignment2.db'
 });
 
 export const Parcel = sequelize.define('Parcel', {
