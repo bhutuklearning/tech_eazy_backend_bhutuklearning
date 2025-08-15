@@ -1,0 +1,6 @@
+trackingNumber,customerName,deliveryAddress,contactNumber,parcelSize,weight
+PKG3001,Emily,11 River Rd,9876501234,Medium,2.0
+PKG3002,Frank,22 Hill St,8765432109,Small,1.8
+PKG3003,Grace,33 Lake Ave,7654321098,Large,4.5
+PKG3004,Henry,44 Forest Dr,6543210987,Medium,2.7
+PKG3005,Ivy,55 Valley Ln,5432109876,Small,1.3

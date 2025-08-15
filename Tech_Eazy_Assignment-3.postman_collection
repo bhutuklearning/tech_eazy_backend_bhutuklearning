@@ -1,0 +1,529 @@
+{
+	"info": {
+		"_postman_id": "c88f09ef-0467-4ec1-89fa-d3e40d676fd9",
+		"name": "Tech_Eazy_Assignment-2",
+		"description": "# 🚀 Get started here\n\nThis template guides you through CRUD operations (GET, POST, PUT, DELETE), variables, and tests.\n\n## 🔖 **How to use this template**\n\n#### **Step 1: Send requests**\n\nRESTful APIs allow you to perform CRUD operations using the POST, GET, PUT, and DELETE HTTP methods.\n\nThis collection contains each of these [request](https://learning.postman.com/docs/sending-requests/requests/) types. Open each request and click \"Send\" to see what happens.\n\n#### **Step 2: View responses**\n\nObserve the response tab for status code (200 OK), response time, and size.\n\n#### **Step 3: Send new Body data**\n\nUpdate or add new data in \"Body\" in the POST request. Typically, Body data is also used in PUT request.\n\n```\n{\n    \"name\": \"Add your name in the body\"\n}\n\n ```\n\n#### **Step 4: Update the variable**\n\nVariables enable you to store and reuse values in Postman. We have created a [variable](https://learning.postman.com/docs/sending-requests/variables/) called `base_url` with the sample request [https://postman-api-learner.glitch.me](https://postman-api-learner.glitch.me). Replace it with your API endpoint to customize this collection.\n\n#### **Step 5: Add tests in the \"Scripts\" tab**\n\nAdding tests to your requests can help you confirm that your API is working as expected. You can write test scripts in JavaScript and view the output in the \"Test Results\" tab.\n\n<img src=\"https://content.pstmn.io/fa30ea0a-373d-4545-a668-e7b283cca343/aW1hZ2UucG5n\" alt=\"\" height=\"1530\" width=\"2162\">\n\n## 💪 Pro tips\n\n- Use folders to group related requests and organize the collection.\n    \n- Add more [scripts](https://learning.postman.com/docs/writing-scripts/intro-to-scripts/) to verify if the API works as expected and execute workflows.\n    \n\n## 💡Related templates\n\n[API testing basics](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=e9a37a28-055b-49cd-8c7e-97494a21eb54&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)  \n[API documentation](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=e9c28f47-1253-44af-a2f3-20dce4da1f18&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)  \n[Authorization methods](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=31a9a6ed-4cdf-4ced-984c-d12c9aec1c27&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "31623578"
+	},
+	"item": [
+		{
+			"name": "Creating a user(as admin)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "// { \n//     \"username\": \"adminNew-1\", \n// \"password\": \"adminNew-1\",\n// \"role\": \"Admin\"\n//  }\n\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:80/api/v1/auth/register",
+				"description": "This is a POST request, submitting data to an API via the request body. This request submits JSON data, and the data is reflected in the response.\n\nA successful POST request typically returns a `200 OK` or `201 Created` response code."
+			},
+			"response": []
+		},
+		{
+			"name": "Loging a User(as admin)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \"username\": \"adminNew\", \"password\": \"admin12345\" }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:80/api/v1/auth/login"
+			},
+			"response": []
+		},
+		{
+			"name": "Creating a user(as Vendor)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \r\n    \"username\": \"vendorNew-1\", \r\n\"password\": \"vendorNew-1\",\r\n\"role\": \"Vendor\"\r\n }\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:80/api/v1/auth/register"
+			},
+			"response": []
+		},
+		{
+			"name": "Loging a User(as Vendor)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \r\n    \"username\": \"vendorNew-1\", \r\n\"password\": \"vendorNew-1\"\r\n }\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:80/api/v1/auth/login"
+			},
+			"response": []
+		},
+		{
+			"name": "Updating Parcels",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful PUT request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"Add your name in the body\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/info?id=1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"info"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "1"
+						}
+					]
+				},
+				"description": "This is a PUT request and it is used to overwrite an existing piece of data. For instance, after you create an entity with a POST request, you may want to modify that later. You can do that using a PUT request. You typically identify the entity being updated by including an identifier in the URL (eg. `id=1`).\n\nA successful PUT request typically returns a `200 OK`, `201 Created`, or `204 No Content` response code."
+			},
+			"response": []
+		},
+		{
+			"name": "Deleting a parcel",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful DELETE request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 202, 204]);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/info?id=1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"info"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "1"
+						}
+					]
+				},
+				"description": "This is a DELETE request, and it is used to delete data that was previously created via a POST request. You typically identify the entity being updated by including an identifier in the URL (eg. `id=1`).\n\nA successful DELETE request typically returns a `200 OK`, `202 Accepted`, or `204 No Content` response code."
+			},
+			"response": []
+		},
+		{
+			"name": "Getting Parcels",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluTmV3LTEiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NTUyODQxMzEsImV4cCI6MTc1NTI4NzczMX0.Kmi0j9WqCODCHkSxoTHBXzN23uLf9mcnewVUYWx6NNM"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:80/api/v1/parcels/"
+			},
+			"response": []
+		},
+		{
+			"name": "Getting Parcels (by Vendors)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InZlbmRvck5ldy0xIiwicm9sZSI6IlZlbmRvciIsImlhdCI6MTc1NTI4NDQ3MywiZXhwIjoxNzU1Mjg4MDczfQ.BRNCk3TclRxS-uISWA42nFjD2fPPGSUX3JjGMlVn_4A"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:80/api/v1/parcels/"
+			},
+			"response": []
+		},
+		{
+			"name": "Creating Vendor",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \"vendorName\": \"Amazon\", \"subscriptionType\": \"NORMAL\" }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:80/api/v1/vendors"
+			},
+			"response": []
+		},
+		{
+			"name": "Getting Vendors",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluTmV3LTEiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NTUyNzkxOTcsImV4cCI6MTc1NTI4Mjc5N30.C4UsKoIACwd7jbQMzYoMZL0cT39YmllxMIJNepLSntw"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:80/api/v1/vendors"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Vendors(Paginated)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/info?id=1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"info"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "1"
+						}
+					]
+				},
+				"description": "This is a GET request and it is used to \"get\" data from an endpoint. There is no request body for a GET request, but you can use query parameters to help specify the resource you want data on (e.g., in this request, we have `id=1`).\n\nA successful GET response will have a `200 OK` status, and should include some kind of response body - for example, HTML web content or JSON data."
+			},
+			"response": []
+		},
+		{
+			"name": "Delivery Orders and file Upload(As Vendor)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InZlbmRvck5ldy0xIiwicm9sZSI6IlZlbmRvciIsImlhdCI6MTc1NTI4MzQyMywiZXhwIjoxNzU1Mjg3MDIzfQ.3D20M5g3dK-9VkLriUA39MZcrEaEnoRHYK6fRvHLXtc"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "vendorId",
+							"value": "3",
+							"type": "text"
+						},
+						{
+							"key": "deliveryDate",
+							"value": "2025-08-15",
+							"type": "text"
+						},
+						{
+							"key": "subscriptionType",
+							"value": "PRIME",
+							"type": "text"
+						},
+						{
+							"key": "file",
+							"type": "file",
+							"src": "postman-cloud:///1f07a034-10ee-40b0-9264-7b9738e13d88"
+						}
+					]
+				},
+				"url": "http://localhost:80/api/v1/delivery-orders/upload"
+			},
+			"response": []
+		},
+		{
+			"name": "Delivery Orders and File Upload(As Admin)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InZlbmRvck5ldy0xIiwicm9sZSI6IlZlbmRvciIsImlhdCI6MTc1NTI4MzIwNiwiZXhwIjoxNzU1Mjg2ODA2fQ.QDAfxsHYqkP-enmfL85ZDdz2VluKWdBPIM6v6v1S-hg"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "vendorId",
+							"value": "3",
+							"type": "text"
+						},
+						{
+							"key": "deliveryDate",
+							"value": "2025-08-15",
+							"type": "text"
+						},
+						{
+							"key": "subscriptionType",
+							"value": "PRIME",
+							"type": "text"
+						},
+						{
+							"key": "file",
+							"type": "file",
+							"src": "postman-cloud:///1f07a034-10ee-40b0-9264-7b9738e13d88"
+						}
+					]
+				},
+				"url": "http://localhost:80/api/v1/delivery-orders/upload"
+			},
+			"response": []
+		},
+		{
+			"name": "Getting orders",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluTmV3LTEiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NTUyODM3NjksImV4cCI6MTc1NTI4NzM2OX0.f2Bli2W8xQNUxAnzbXYXCQz95Mvm_auBeQK7VhieIFM"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:80/api/v1/delivery-orders"
+			},
+			"response": []
+		},
+		{
+			"name": "Getting Orders by vendors and Date",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluTmV3LTEiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NTUyODM3NjksImV4cCI6MTc1NTI4NzM2OX0.f2Bli2W8xQNUxAnzbXYXCQz95Mvm_auBeQK7VhieIFM"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": {
+					"raw": "http://localhost:80/api/v1/delivery-orders?vendor=1&date=2025-08-15",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "80",
+					"path": [
+						"api",
+						"v1",
+						"delivery-orders"
+					],
+					"query": [
+						{
+							"key": "vendor",
+							"value": "1"
+						},
+						{
+							"key": "date",
+							"value": "2025-08-15"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Download Delivery Orders file",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluTmV3LTEiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NTUyODM3NjksImV4cCI6MTc1NTI4NzM2OX0.f2Bli2W8xQNUxAnzbXYXCQz95Mvm_auBeQK7VhieIFM"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:80/api/v1/delivery-orders/download/2"
+			},
+			"response": []
+		},
+		{
+			"name": "Public API",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InZlbmRvck5ldy0xIiwicm9sZSI6IlZlbmRvciIsImlhdCI6MTc1NTI4NDQ3MywiZXhwIjoxNzU1Mjg4MDczfQ.BRNCk3TclRxS-uISWA42nFjD2fPPGSUX3JjGMlVn_4A"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:80/api/v1/parcels/public/PKG3008"
+			},
+			"response": []
+		},
+		{
+			"name": "Creating Parcels",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"trackingNumber\": \"PKG1006\",\r\n  \"customerName\": \"Eva Brown\",\r\n  \"deliveryAddress\": \"987 Birch Boulevard\",\r\n  \"contactNumber\": \"9223344556\",\r\n  \"parcelSize\": \"Large\",\r\n  \"weight\": 5.3\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:80/api/v1/parcels"
+			},
+			"response": []
+		},
+		{
+			"name": "Logout",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InZlbmRvck5ldy0xIiwicm9sZSI6IlZlbmRvciIsImlhdCI6MTc1NTI3ODUyMCwiZXhwIjoxNzU1MjgyMTIwfQ.66KnSrGQ6ea6m5YuyeeQFl36gJpc-WruQA5SOcLFUqM"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"trackingNumber\": \"PKG1006\",\r\n  \"customerName\": \"Eva Brown\",\r\n  \"deliveryAddress\": \"987 Birch Boulevard\",\r\n  \"contactNumber\": \"9223344556\",\r\n  \"parcelSize\": \"Large\",\r\n  \"weight\": 5.3\r\n}"
+				},
+				"url": "http://localhost:80/api/v1/auth/logout"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "id",
+			"value": "1"
+		},
+		{
+			"key": "base_url",
+			"value": "https://postman-rest-api-learner.glitch.me/"
+		}
+	]
+}
