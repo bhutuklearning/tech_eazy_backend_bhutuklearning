@@ -33,18 +33,6 @@ app.use('/api/v1/vendors', vendorRoutes);
 app.use('/api/v1/delivery-orders', deliveryOrderRoutes);
 app.use('/api/v1/auth', authRoutes);
 
-// Sync Sequelize models and create tables if they don't exist
-/*
-sequelize.sync().then(() => {
-    console.log('Database & tables synced!');
-    // Start the server inside the sync callback
-    app.listen(PORT, () => {
-        console.log(`Server is running on port number ${PORT}`);
-    });
-}).catch((err) => {
-    console.error('Failed to sync database:', err);
-});
-*/
 
 // Assignment 2: Sync all models and seed data
 sequelize.sync({ alter: true }).then(async () => {
