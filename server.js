@@ -48,7 +48,7 @@ sequelize.sync().then(async () => {
     }
     // Add more seeding logic for vendors/orders if desired
 
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
         console.log(`Server is running on port number ${PORT}`);
     });
 }).catch((err) => {
