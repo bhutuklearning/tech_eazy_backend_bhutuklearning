@@ -10,7 +10,7 @@ import deliveryOrderRoutes from './deliveryOrder/deliveryOrderController.js';
 import authRoutes, { User } from './auth/authController.js';
 
 const app = express();
-const PORT = 80; // as said in the assignment.
+const PORT = 8080; // as said in the assignment.
 
 // Middleware
 app.use(bodyParser.json());
