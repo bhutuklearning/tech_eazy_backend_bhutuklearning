@@ -35,8 +35,8 @@ app.use('/api/v1/auth', authRoutes);
 
 
 // Assignment 2: Sync all models and seed data
-sequelize.sync({ alter: true }).then(async () => {
-    console.log('Database & tables synced!');
+sequelize.sync().then(async () => {
+    console.log('Database & tables synced with force:true (all data dropped & recreated)!');
     // Seed a couple of vendors and delivery orders if needed
     if (await User.count() === 0) {
         await User.create({ username: 'admin', password: 'admin123' });
