@@ -25,6 +25,11 @@ const db = new sqlite3.Database('./db/parcel.db', (err) => {
     }
 });
 
+app.get('/', (req, res) => {
+    res.send('Welcome to the Parcel Management System API!');
+}
+);
+
 // API routes
 app.use('/api/v1/parcels', parcelRoutes);
 
