@@ -42,15 +42,10 @@ app.use('/api/v1/delivery-orders', deliveryOrderRoutes);
 app.use('/api/v1/auth', authRoutes);
 
 
-// Assignment 2: Sync all models and seed data
 sequelize.sync().then(async () => {
     console.log('Database & tables synced with force:true (all data dropped & recreated)!');
-    // Seed a couple of vendors and delivery orders if needed
-    if (await User.count() === 0) {
-        await User.create({ username: 'admin', password: 'admin123' });
-    }
-    // Add more seeding logic for vendors/orders if desired
 
+    // New server changes for cloud deployment
     app.listen(PORT, '0.0.0.0', () => {
         console.log(`Server is running on port number ${PORT}`);
     });
