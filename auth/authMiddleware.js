@@ -1,47 +1,57 @@
-// authMiddleware.js
-// Middleware to protect routes using JWT authentication
-
-// If there was previous code, it would be commented out here.
-
 // import { verifyToken } from './jwtUtils.js';
 
 // export function authenticateJWT(req, res, next) {
-//   const authHeader = req.headers['authorization'];
-//   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-//     return res.status(401).json({ error: 'Missing or invalid Authorization header' });
+//   // 1. First, try to read from cookie
+//   let token = req.cookies?.auth_token;
+
+//   // 2. Fallback: also support Bearer token in header (optional, keeps flexibility)
+//   if (!token) {
+//     const authHeader = req.headers['authorization'];
+//     if (authHeader && authHeader.startsWith('Bearer ')) {
+//       token = authHeader.split(' ')[1];
+//     }
 //   }
-//   const token = authHeader.split(' ')[1];
+//   // If no token found
+//   if (!token) {
+//     return res.status(401).json({ error: 'No token provided' });
+//   }
+//   // 3. Verify token
 //   const user = verifyToken(token);
 //   if (!user) {
 //     return res.status(401).json({ error: 'Invalid or expired token' });
 //   }
-//   req.user = user;
+//   // 4. Attach decoded user to request for later use
+//   req.user = {
+//     username: user.username,
+//     role: user.role
+//   };
 //   next();
 // }
 
+
+
+
+
+// auth/authMiddleware.js
 import { verifyToken } from './jwtUtils.js';
 
 export function authenticateJWT(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  
-  // Check if Authorization header exists and is in Bearer format
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Missing or invalid Authorization header' });
+  // 1. First, try to read from cookie
+  let token = req.cookies?.auth_token;
+  // 2. Fallback: also support Bearer token in header (optional, keeps flexibility)
+  if (!token) {
+    const authHeader = req.headers['authorization'];
+    if (authHeader?.startsWith('Bearer ')) token = authHeader.split(' ')[1];
   }
+  // If no token found
+  if (!token) return res.status(401).json({ error: 'No token provided' });
 
-  const token = authHeader.split(' ')[1];
-
-  // Verify and decode token (will include role if stored during login)
+  // 3. Verify token
   const user = verifyToken(token);
-  if (!user) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
-  }
+  if (!user) return res.status(401).json({ error: 'Invalid or expired token' });
 
-  // Store full user info (username + role) in req.user for later role-based checks
-  req.user = {
-    username: user.username,
-    role: user.role
-  };
-
+  // 4. Attach decoded user to request for later use
+  // user: { id, username, role: 'Admin'|'Vendor', type: 'admin'|'vendor' }
+  req.user = { id: user.id, username: user.username, role: user.role, type: user.type };
   next();
 }
