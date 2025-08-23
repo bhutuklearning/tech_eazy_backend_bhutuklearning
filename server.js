@@ -1,6 +1,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import sqlite3 from 'sqlite3';
+import cookieParser from 'cookie-parser';
+import bcrypt from 'bcryptjs';
 import parcelRoutes from './parcel/parcelController.js';
 import sequelize from './parcel/parcelModel.js';
 
@@ -15,6 +17,7 @@ const PORT = 8080; // as said in the assignment.
 // Middleware
 app.use(bodyParser.json());
 app.use(express.json())
+app.use(cookieParser());
 
 // Database connection
 const db = new sqlite3.Database('./db/parcel.db', (err) => {
