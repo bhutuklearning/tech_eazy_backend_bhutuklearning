@@ -1,91 +1,54 @@
-
 // deliveryOrderService.js
-// Service layer for DeliveryOrder entity
+import {
+  createDeliveryOrderDB,
+  getDeliveryOrdersDB,
+  getDeliveryOrderByIdDB,
+  updateDeliveryOrderDB,
+  deleteDeliveryOrderDB,
+} from "./deliveryOrderModel.js";
 
-import { DeliveryOrder } from './deliveryOrderModel.js';
-import { Vendor } from '../vendor/vendorModel.js';
-import { Parcel } from '../parcel/parcelModel.js';
-import { createParcel } from '../parcel/parcelService.js';
-import DeliveryOrderDTO from './DeliveryOrderDTO.js';
-import fs from 'fs';
-import path from 'path';
-import { parse } from 'csv-parse/sync';
+import { uploadOrdersFromCSV } from "./orderCsvUpload.js";
 
-// Helper: Parse CSV file and create parcels
-export async function processCSVAndCreateParcels(filePath, vendorId) {
-  const fileContent = fs.readFileSync(filePath, 'utf-8');
-
-  // Parse CSV with headers (safer than manual split)
-  const records = parse(fileContent, {
-    columns: true, // use first row as headers
-    skip_empty_lines: true,
-    trim: true
-  });
-
-  let totalOrders = 0;
-
-  for (const [index, row] of records.entries()) {
-    // Required fields check
-    const requiredFields = [
-      'trackingNumber',
-      'customerName',
-      'deliveryAddress',
-      'contactNumber',
-      'parcelSize',
-      'weight'
-    ];
-    for (const field of requiredFields) {
-      if (!row[field] || row[field].toString().trim() === '') {
-        throw new Error(`Missing required field "${field}" in row ${index + 2}`);
-      }
-    }
-
-    await createParcel({
-      trackingNumber: row.trackingNumber,
-      customerName: row.customerName,
-      deliveryAddress: row.deliveryAddress,
-      contactNumber: row.contactNumber,
-      parcelSize: row.parcelSize,
-      weight: parseFloat(row.weight),
-      vendorId
-    });
-
-    totalOrders++;
-  }
-
-  return totalOrders;
+// === Create new order ===
+export async function createDeliveryOrder(data) {
+  return await createDeliveryOrderDB(data);
 }
 
-// Create DeliveryOrder and process file
-export async function createDeliveryOrder({ vendorId, deliveryDate, subscriptionType, filePath }) {
-  const totalOrders = await processCSVAndCreateParcels(filePath, vendorId);
-  const order = await DeliveryOrder.create({
-    vendorId,
-    deliveryDate,
-    subscriptionType,
-    filePath
-  });
-  return { order, totalOrders };
+// === Get all orders with pagination ===
+export async function getDeliveryOrders(page = 1, limit = 10) {
+  const { deliveryOrders, lastKey } = await getDeliveryOrdersDB(limit);
+  return { deliveryOrders, page, limit, lastKey };
 }
 
-// Get delivery orders with optional filters
-export async function getDeliveryOrders({ vendor, date }) {
-  const where = {};
-  if (vendor) where.vendorId = vendor;
-  if (date) where.deliveryDate = date;
-  else where.deliveryDate = new Date().toISOString().slice(0, 10); // today's orders
-  const orders = await DeliveryOrder.findAll({ where, include: Vendor });
-  return orders.map(order => new DeliveryOrderDTO({
-    vendorName: order.Vendor.vendorName,
-    date: order.deliveryDate,
-    totalOrders: 0, // Could be calculated if needed
-    fileLink: `/delivery-orders/download/${order.id}`
-  }));
+// === Get order by ID ===
+export async function getDeliveryOrderById(id) {
+  const order = await getDeliveryOrderByIdDB(id);
+  if (!order) throw new Error("Delivery order not found");
+  return order;
 }
 
-// Get file path for download
-export async function getDeliveryOrderFile(orderId) {
-  const order = await DeliveryOrder.findByPk(orderId);
-  if (!order) return null;
+// === Update order ===
+export async function updateDeliveryOrder(id, data) {
+  const order = await updateDeliveryOrderDB(id, data);
+  if (!order) throw new Error("Delivery order not found or update failed");
+  return order;
+}
+
+// === Delete order ===
+export async function deleteDeliveryOrder(id) {
+  return await deleteDeliveryOrderDB(id);
+}
+
+// === Bulk upload orders via CSV ===
+export async function bulkUploadOrders(filePath) {
+  return await uploadOrdersFromCSV(filePath);
+}
+
+// === Get file path for order download ===
+export async function getDeliveryOrderFile(id) {
+  const order = await getDeliveryOrderByIdDB(id);
+  if (!order) throw new Error("Delivery order not found");
+  if (!order.filePath) throw new Error("No file attached to this order");
+
   return order.filePath;
 }

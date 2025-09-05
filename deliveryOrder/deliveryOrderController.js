@@ -8,23 +8,26 @@ import { authorizeRole } from '../auth/roleMiddleware.js';
 import {
   createDeliveryOrder,
   getDeliveryOrders,
-  getDeliveryOrderFile
+  getDeliveryOrderFile,
+  bulkUploadOrders
 } from './deliveryOrderService.js';
 
 const router = express.Router();
 
- // Set up multer for file uploads
+// === Multer Setup for file uploads ===
 const uploadDir = path.resolve('uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
 const upload = multer({ storage });
-// Protect all /delivery-orders routes
+
+// ✅ Protect all /delivery-orders routes
 router.use(authenticateJWT);
 
-// POST /delivery-orders/upload → Only Vendor allowed
+// === 1. Single Order Upload ===
 router.post(
   '/upload',
   authorizeRole(['Vendor']),
@@ -33,40 +36,68 @@ router.post(
     try {
       const { vendorId, deliveryDate, subscriptionType } = req.body;
       if (!req.file) return res.status(400).json({ error: 'File is required' });
+
       const filePath = req.file.path;
-      const { order, totalOrders } = await createDeliveryOrder({
+      const order = await createDeliveryOrder({
         vendorId,
         deliveryDate,
         subscriptionType,
         filePath
       });
-      res.status(201).json({ order, totalOrders });
+
+      res.status(201).json({ message: "Order created", order });
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
   }
 );
 
-// GET /delivery-orders → Vendor & Admin allowed
+// === 2. Bulk Orders Upload via CSV ===
+router.post(
+  '/upload-csv',
+  authorizeRole(['Vendor', 'Admin']),
+  upload.single('file'),
+  async (req, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+      const result = await bulkUploadOrders(req.file.path);
+
+      res.status(201).json({
+        message: 'Orders uploaded successfully',
+        count: result.count
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+// === 3. Get All Orders ===
 router.get(
   '/',
   authorizeRole(['Vendor', 'Admin']),
   async (req, res) => {
-    const { vendor, date } = req.query;
-    const orders = await getDeliveryOrders({ vendor, date });
+    const { page, limit } = req.query;
+    const orders = await getDeliveryOrders(Number(page) || 1, Number(limit) || 10);
     res.json(orders);
   }
 );
 
-// GET /delivery-orders/download/:id → Vendor & Admin allowed
+// === 4. Download Order File ===
 router.get(
   '/download/:id',
   authorizeRole(['Vendor', 'Admin']),
   async (req, res) => {
-    const filePath = await getDeliveryOrderFile(req.params.id);
-    if (!filePath || !fs.existsSync(filePath))
-      return res.status(404).json({ error: 'File not found' });
-    res.download(filePath);
+    try {
+      const filePath = await getDeliveryOrderFile(req.params.id);
+      if (!filePath || !fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+      res.download(filePath);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
   }
 );
 

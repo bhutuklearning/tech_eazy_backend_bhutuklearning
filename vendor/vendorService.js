@@ -1,75 +1,37 @@
-// // vendorService.js
-// import { Vendor } from './vendorModel.js';
-
-// export async function createVendor(data) {
-//   return await Vendor.create(data);
-// }
-
-// export async function getVendors(page = 1, limit = 10) {
-//   const offset = (page - 1) * limit;
-//   const { count, rows } = await Vendor.findAndCountAll({
-//     offset,
-//     limit,
-//     order: [['id', 'ASC']]
-//   });
-//   return { total: count, vendors: rows };
-// }
-
-// export async function getVendorById(id) {
-//   return await Vendor.findByPk(id);
-// }
-
-// export async function updateVendor(id, data) {
-//   const vendor = await Vendor.findByPk(id);
-//   if (!vendor) return null;
-//   await vendor.update(data);
-//   return vendor;
-// }
-
-// export async function deleteVendor(id) {
-//   const vendor = await Vendor.findByPk(id);
-//   if (!vendor) return null;
-//   await vendor.destroy();
-//   return vendor;
-// }
-
-
 // vendorService.js
-import { Vendor } from './vendorModel.js';
+// Service layer for Vendor entity with DynamoDB
+
+import {
+  createVendorDB,
+  getVendorsDB,
+  getVendorByIdDB,
+  updateVendorDB,
+  deleteVendorDB,
+} from "./vendorModel.js";
 
 export async function createVendor(data) {
-  try {
-    return await Vendor.create(data);
-  } catch (err) {
-    throw new Error(`Failed to create vendor: ${err.message}`);
-  }
+  return await createVendorDB(data);
 }
 
 export async function getVendors(page = 1, limit = 10) {
-  const offset = (page - 1) * limit;
-  const { count, rows } = await Vendor.findAndCountAll({
-    offset,
-    limit,
-    order: [['id', 'ASC']]
-  });
-  return { total: count, page, limit, vendors: rows };
+  // DynamoDB doesn’t support offset pagination (page numbers).
+  // Instead, we return the lastKey for the next page.
+  const { vendors, lastKey } = await getVendorsDB(limit);
+  return { vendors, page, limit, lastKey };
 }
 
 export async function getVendorById(id) {
-  const vendor = await Vendor.findByPk(id);
-  if (!vendor) throw new Error('Vendor not found');
+  const vendor = await getVendorByIdDB(id);
+  if (!vendor) throw new Error("Vendor not found");
   return vendor;
 }
 
 export async function updateVendor(id, data) {
-  const vendor = await Vendor.findByPk(id);
-  if (!vendor) throw new Error('Vendor not found');
-  return await vendor.update(data);
+  const vendor = await updateVendorDB(id, data);
+  if (!vendor) throw new Error("Vendor not found or update failed");
+  return vendor;
 }
 
 export async function deleteVendor(id) {
-  const vendor = await Vendor.findByPk(id);
-  if (!vendor) throw new Error('Vendor not found');
-  await vendor.destroy();
-  return true;
+  return await deleteVendorDB(id);
 }

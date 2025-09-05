@@ -1,126 +1,226 @@
 // authController.js
-import express from 'express';
-import bcrypt from 'bcryptjs';
-import cookieParser from 'cookie-parser';
-import { DataTypes } from 'sequelize';
-import sequelize from '../parcel/parcelModel.js';
-import { generateToken } from './jwtUtils.js';
-import { Vendor } from '../vendor/vendorModel.js';
+import express from "express";
+import bcrypt from "bcryptjs";
+import cookieParser from "cookie-parser";
+import { v4 as uuidv4 } from "uuid";
+import { ddbDocClient } from "../db/dynamoClient.js";
+import {
+  GetCommand,
+  PutCommand,
+  ScanCommand,
+  QueryCommand,
+} from "@aws-sdk/lib-dynamodb";
+import { generateToken } from "./jwtUtils.js";
 
 const router = express.Router();
 router.use(cookieParser());
 
-// Admin-only user table
-export const User = sequelize.define('User', {
-  username: { type: DataTypes.STRING, unique: true, allowNull: false },
-  password: { type: DataTypes.STRING, allowNull: false },
-  role: {
-    type: DataTypes.ENUM('Admin'),
-    allowNull: false,
-    defaultValue: 'Admin'
-  }
-}, { timestamps: false });
+// DynamoDB table names
+const ADMINS_TABLE = "UsersTable";
+const VENDORS_TABLE = "VendorsTable";
 
-// -------- REGISTER --------
-router.post('/register', async (req, res) => {
+/**
+ * 🔹 Helper: Find Admin by username
+ */
+async function findAdminByUsername(username) {
+  const cmd = new QueryCommand({
+    TableName: ADMINS_TABLE,
+    KeyConditionExpression: "username = :u",
+    ExpressionAttributeValues: { ":u": username },
+  });
+  const res = await ddbDocClient.send(cmd);
+  return res.Items?.[0];
+}
+
+/**
+ * 🔹 Helper: Find Vendor by username
+ */
+async function findVendorByUsername(username) {
+  const cmd = new ScanCommand({
+    TableName: VENDORS_TABLE,
+    FilterExpression: "username = :u",
+    ExpressionAttributeValues: { ":u": username },
+  });
+  const res = await ddbDocClient.send(cmd);
+  return res.Items?.[0];
+}
+
+// ================== REGISTER ==================
+router.post("/register", async (req, res) => {
   const { username, password, role, vendorName, subscriptionType } = req.body;
   if (!username || !password || !role) {
-    return res.status(400).json({ error: 'username, password, role are required' });
+    return res
+      .status(400)
+      .json({ error: "username, password, role are required" });
   }
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    if (role === 'Admin') {
+    if (role === "Admin") {
       // prevent collision with vendor usernames
-      const vendorExists = await Vendor.findOne({ where: { username } });
-      if (vendorExists) return res.status(409).json({ error: 'Username already used by a Vendor' });
+      const vendorExists = await findVendorByUsername(username);
+      if (vendorExists) {
+        return res
+          .status(409)
+          .json({ error: "Username already used by a Vendor" });
+      }
 
-      const admin = await User.create({ username, password: hashedPassword, role: 'Admin' });
-      return res.status(201).json({ message: 'Admin created', user: { username: admin.username, role: 'Admin' } });
+      // also check admin table
+      const adminExists = await findAdminByUsername(username);
+      if (adminExists) {
+        return res
+          .status(409)
+          .json({ error: "Username already used by another Admin" });
+      }
+
+      const admin = {
+        id: uuidv4(),
+        username,
+        password: hashedPassword,
+        role: "Admin",
+      };
+
+      await ddbDocClient.send(
+        new PutCommand({ TableName: ADMINS_TABLE, Item: admin })
+      );
+
+      return res.status(201).json({
+        message: "Admin created",
+        user: { username: admin.username, role: "Admin" },
+      });
     }
 
-    if (role === 'Vendor') {
-      // vendor requires vendorName
+    if (role === "Vendor") {
       if (!vendorName) {
-        return res.status(400).json({ error: 'vendorName is required for Vendor registration' });
+        return res
+          .status(400)
+          .json({ error: "vendorName is required for Vendor registration" });
       }
 
       // prevent collision with admin usernames
-      const adminExists = await User.findOne({ where: { username } });
-      if (adminExists) return res.status(409).json({ error: 'Username already used by an Admin' });
+      const adminExists = await findAdminByUsername(username);
+      if (adminExists) {
+        return res
+          .status(409)
+          .json({ error: "Username already used by an Admin" });
+      }
 
-      const vendor = await Vendor.create({
+      const vendor = {
+        id: uuidv4(),
         vendorName,
-        subscriptionType: subscriptionType || 'NORMAL',
+        subscriptionType: subscriptionType || "NORMAL",
         username,
-        password: hashedPassword
-      });
+        password: hashedPassword,
+        role: "Vendor",
+      };
+
+      await ddbDocClient.send(
+        new PutCommand({ TableName: VENDORS_TABLE, Item: vendor })
+      );
+
       return res.status(201).json({
-        message: 'Vendor registered',
-        vendor: { id: vendor.id, vendorName: vendor.vendorName, subscriptionType: vendor.subscriptionType }
+        message: "Vendor registered",
+        vendor: {
+          id: vendor.id,
+          vendorName: vendor.vendorName,
+          subscriptionType: vendor.subscriptionType,
+        },
       });
     }
 
-    return res.status(400).json({ error: 'Invalid role. Allowed: Admin | Vendor' });
+    return res
+      .status(400)
+      .json({ error: "Invalid role. Allowed: Admin | Vendor" });
   } catch (err) {
-    return res.status(400).json({ error: 'Registration failed', details: err?.message });
+    return res
+      .status(400)
+      .json({ error: "Registration failed", details: err?.message });
   }
 });
 
-// -------- LOGIN --------
-router.post('/login', async (req, res) => {
+// ================== LOGIN ==================
+router.post("/login", async (req, res) => {
   const { username, password, role } = req.body;
-  if (!username || !password) return res.status(400).json({ error: 'username and password are required' });
+  if (!username || !password) {
+    return res
+      .status(400)
+      .json({ error: "username and password are required" });
+  }
 
   try {
-    // If role provided, use it; else try Admin then Vendor
-    if (role === 'Admin') {
-      const admin = await User.findOne({ where: { username } });
-      if (!admin) return res.status(401).json({ error: 'Invalid credentials' });
+    // ADMIN LOGIN
+    if (role === "Admin") {
+      const admin = await findAdminByUsername(username);
+      if (!admin) return res.status(401).json({ error: "Invalid credentials" });
+
       const ok = await bcrypt.compare(password, admin.password);
-      if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+      if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
-      const token = generateToken({ id: admin.id, username: admin.username, role: 'Admin', type: 'admin' });
-      res.cookie('auth_token', token, { httpOnly: true, sameSite: 'strict' });
-      return res.json({ message: 'Login successful', role: 'Admin' });
+      const token = generateToken({
+        id: admin.id,
+        username: admin.username,
+        role: "Admin",
+        type: "admin",
+      });
+      res.cookie("auth_token", token, { httpOnly: true, sameSite: "strict" });
+      return res.json({ message: "Login successful", role: "Admin" });
     }
 
-    if (role === 'Vendor') {
-      const vendor = await Vendor.findOne({ where: { username } });
-      if (!vendor) return res.status(401).json({ error: 'Invalid credentials' });
+    // VENDOR LOGIN
+    if (role === "Vendor") {
+      const vendor = await findVendorByUsername(username);
+      if (!vendor)
+        return res.status(401).json({ error: "Invalid credentials" });
+
       const ok = await bcrypt.compare(password, vendor.password);
-      if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+      if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
-      const token = generateToken({ id: vendor.id, username: vendor.username, role: 'Vendor', type: 'vendor' });
-      res.cookie('auth_token', token, { httpOnly: true, sameSite: 'strict' });
-      return res.json({ message: 'Login successful', role: 'Vendor' });
+      const token = generateToken({
+        id: vendor.id,
+        username: vendor.username,
+        role: "Vendor",
+        type: "vendor",
+      });
+      res.cookie("auth_token", token, { httpOnly: true, sameSite: "strict" });
+      return res.json({ message: "Login successful", role: "Vendor" });
     }
 
-    // No role supplied: try Admin then Vendor
-    const admin = await User.findOne({ where: { username } });
-    if (admin && await bcrypt.compare(password, admin.password)) {
-      const token = generateToken({ id: admin.id, username: admin.username, role: 'Admin', type: 'admin' });
-      res.cookie('auth_token', token, { httpOnly: true, sameSite: 'strict' });
-      return res.json({ message: 'Login successful', role: 'Admin' });
-    }
-    const vendor = await Vendor.findOne({ where: { username } });
-    if (vendor && await bcrypt.compare(password, vendor.password)) {
-      const token = generateToken({ id: vendor.id, username: vendor.username, role: 'Vendor', type: 'vendor' });
-      res.cookie('auth_token', token, { httpOnly: true, sameSite: 'strict' });
-      return res.json({ message: 'Login successful', role: 'Vendor' });
+    // No role given → try both
+    const admin = await findAdminByUsername(username);
+    if (admin && (await bcrypt.compare(password, admin.password))) {
+      const token = generateToken({
+        id: admin.id,
+        username: admin.username,
+        role: "Admin",
+        type: "admin",
+      });
+      res.cookie("auth_token", token, { httpOnly: true, sameSite: "strict" });
+      return res.json({ message: "Login successful", role: "Admin" });
     }
 
-    return res.status(401).json({ error: 'Invalid credentials' });
+    const vendor = await findVendorByUsername(username);
+    if (vendor && (await bcrypt.compare(password, vendor.password))) {
+      const token = generateToken({
+        id: vendor.id,
+        username: vendor.username,
+        role: "Vendor",
+        type: "vendor",
+      });
+      res.cookie("auth_token", token, { httpOnly: true, sameSite: "strict" });
+      return res.json({ message: "Login successful", role: "Vendor" });
+    }
+
+    return res.status(401).json({ error: "Invalid credentials" });
   } catch (err) {
-    return res.status(400).json({ error: 'Login failed', details: err?.message });
+    return res.status(400).json({ error: "Login failed", details: err?.message });
   }
 });
 
-// -------- LOGOUT --------
-router.post('/logout', (req, res) => {
-  res.clearCookie('auth_token');
-  res.json({ message: 'Logged out' });
+// ================== LOGOUT ==================
+router.post("/logout", (req, res) => {
+  res.clearCookie("auth_token");
+  res.json({ message: "Logged out" });
 });
 
 export default router;

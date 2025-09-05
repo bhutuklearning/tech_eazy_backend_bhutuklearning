@@ -1,51 +1,102 @@
 // vendorModel.js
-// Vendor model using Sequelize, with ENUM for subscriptionType and one-to-many relation to DeliveryOrder
+// DynamoDB model functions for Vendor entity
 
-import { Sequelize, DataTypes } from 'sequelize';
-import sequelize from '../parcel/parcelModel.js'; // Reuse the same sequelize instance (same DB)
+import { ddbDocClient } from "../db/dynamoClient.js";
+import {
+  PutCommand,
+  GetCommand,
+  ScanCommand,
+  UpdateCommand,
+  DeleteCommand,
+} from "@aws-sdk/lib-dynamodb";
+import { v4 as uuidv4 } from "uuid";
 
+const TABLE_NAME = "VendorsTable"; // must match your DynamoDB table name
 
-// // Vendor model definition
-// export const Vendor = sequelize.define('Vendor', {
-//   id: {
-//     type: DataTypes.INTEGER,
-//     autoIncrement: true,
-//     primaryKey: true
-//   },
-//   vendorName: {
-//     type: DataTypes.STRING,
-//     allowNull: false,
-//     unique: true
-//   },
-//   subscriptionType: {
-//     type: DataTypes.ENUM('NORMAL', 'PRIME', 'VIP'),
-//     allowNull: false,
-//     defaultValue: 'NORMAL'
-//   }
-// }, {
-//   timestamps: true
-// });
+// Create Vendor
+export const createVendorDB = async (data) => {
+  const item = {
+    id: uuidv4(), // auto-generate ID
+    subscriptionType: data.subscriptionType || "NORMAL",
+    ...data,
+    createdAt: new Date().toISOString(),
+  };
 
-export const Vendor = sequelize.define('Vendor', {
-  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  await ddbDocClient.send(
+    new PutCommand({
+      TableName: TABLE_NAME,
+      Item: item,
+    })
+  );
 
-  // Business identity
-  vendorName: { type: DataTypes.STRING, allowNull: false, unique: true },
-  subscriptionType: {
-    type: DataTypes.ENUM('NORMAL', 'PRIME', 'VIP'),
-    allowNull: false,
-    defaultValue: 'NORMAL'
-  },
+  return item;
+};
 
-  // 🔐 Auth fields for vendor login
-  username: { type: DataTypes.STRING, allowNull: false, unique: true },
-  password: { type: DataTypes.STRING, allowNull: false } // store bcrypt hash
-}, {
-  timestamps: true
-});
+// Get Vendors (simple scan with pagination)
+export const getVendorsDB = async (limit = 10, lastKey = null) => {
+  const params = {
+    TableName: TABLE_NAME,
+    Limit: limit,
+    ExclusiveStartKey: lastKey || undefined,
+  };
 
+  const result = await ddbDocClient.send(new ScanCommand(params));
+  return {
+    vendors: result.Items || [],
+    lastKey: result.LastEvaluatedKey || null,
+  };
+};
 
+// Get Vendor by ID
+export const getVendorByIdDB = async (id) => {
+  const result = await ddbDocClient.send(
+    new GetCommand({
+      TableName: TABLE_NAME,
+      Key: { id },
+    })
+  );
+  return result.Item || null;
+};
 
-// DeliveryOrder model will be associated in its own file
+// Update Vendor
+export const updateVendorDB = async (id, data) => {
+  if (!data || Object.keys(data).length === 0) {
+    throw new Error("No update data provided");
+  }
 
-export default Vendor;
+  let updateExpr = "set";
+  const exprAttrValues = {};
+  const exprAttrNames = {};
+
+  Object.keys(data).forEach((key) => {
+    updateExpr += ` #${key} = :${key},`;
+    exprAttrValues[`:${key}`] = data[key];
+    exprAttrNames[`#${key}`] = key;
+  });
+
+  updateExpr = updateExpr.slice(0, -1); // remove trailing comma
+
+  const result = await ddbDocClient.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { id },
+      UpdateExpression: updateExpr,
+      ExpressionAttributeValues: exprAttrValues,
+      ExpressionAttributeNames: exprAttrNames,
+      ReturnValues: "ALL_NEW",
+    })
+  );
+
+  return result.Attributes;
+};
+
+// Delete Vendor
+export const deleteVendorDB = async (id) => {
+  await ddbDocClient.send(
+    new DeleteCommand({
+      TableName: TABLE_NAME,
+      Key: { id },
+    })
+  );
+  return true;
+};
